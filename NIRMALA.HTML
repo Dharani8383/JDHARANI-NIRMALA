@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>College Infrastructure Complaint System</title>
+
+  <!-- ✅ CSS INSIDE HTML -->
+  <style>
+    body {
+      font-family: Arial;
+      background: #eef2f7;
+    }
+
+    .container {
+      width: 420px;
+      margin: auto;
+      padding: 20px;
+      background: #fff;
+      margin-top: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px gray;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      margin: 8px 0;
+      padding: 8px;
+    }
+
+    button {
+      background: #007BFF;
+      color: white;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 🔐 LOGIN PAGE -->
+<div class="container" id="loginPage">
+  <h2>College Infrastructure Login</h2>
+
+  <label>Name</label>
+  <input type="text" id="name">
+
+  <label>Class</label>
+  <input type="text" id="class">
+
+  <label>Department</label>
+  <input type="text" id="dept">
+
+  <label>Login As</label>
+  <select id="role">
+    <option value="student">Student</option>
+    <option value="staff">Staff</option>
+    <option value="management">Management</option>
+  </select>
+
+  <label>Password</label>
+  <input type="password" id="password">
+
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- 🎓 STUDENT PAGE -->
+<div class="container hidden" id="studentPage">
+  <h2>Raise Infrastructure Complaint</h2>
+
+  <textarea id="complaintText" placeholder="Describe the issue"></textarea>
+
+  <label>Upload Evidence Image</label>
+  <input type="file" id="imageUpload" accept="image/*">
+
+  <img id="preview" class="hidden">
+
+  <button onclick="submitComplaint()">Submit Complaint</button>
+
+  <h3>Status:</h3>
+  <p id="studentStatus">No complaint submitted</p>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- 👩‍🏫 STAFF PAGE -->
+<div class="container hidden" id="staffPage">
+  <h2>Staff Dashboard</h2>
+
+  <h3>Complaint Details</h3>
+  <p id="staffComplaint">No complaint available</p>
+  <img id="staffImage" class="hidden">
+
+  <button onclick="forwardToManagement()">Forward to Management</button>
+
+  <p><strong>Status:</strong> <span id="staffStatus"></span></p>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- 🏢 MANAGEMENT PAGE -->
+<div class="container hidden" id="managementPage">
+  <h2>Management Panel</h2>
+
+  <h3>Complaint Details</h3>
+  <p id="managementComplaint">No complaint available</p>
+  <img id="managementImage" class="hidden">
+
+  <button onclick="markComplete()">Mark Issue as Completed</button>
+
+  <button onclick="logout()">Logout</button>
+</div>
+
+<!-- ✅ JAVASCRIPT INSIDE HTML -->
+<script>
+  // Show selected page
+  function showPage(pageId) {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("studentPage").classList.add("hidden");
+    document.getElementById("staffPage").classList.add("hidden");
+    document.getElementById("managementPage").classList.add("hidden");
+    document.getElementById(pageId).classList.remove("hidden");
+  }
+
+  // Login logic
+  function login() {
+    const role = document.getElementById("role").value;
+    const password = document.getElementById("password").value;
+
+    if (role === "student" && password === "student@123") {
+      showPage("studentPage");
+      updateStudentStatus();
+    } 
+    else if (role === "staff" && password === "staff@123") {
+      showPage("staffPage");
+      loadStaffData();
+    } 
+    else if (role === "management" && password === "CKEC@123") {
+      showPage("managementPage");
+      loadManagementData();
+    } 
+    else {
+      alert("Invalid password!");
+    }
+  }
+
+  // Logout
+  function logout() {
+    showPage("loginPage");
+  }
+
+  // Image preview
+  document.getElementById("imageUpload").addEventListener("change", function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById("preview");
+        preview.src = e.target.result;
+        preview.classList.remove("hidden");
+        localStorage.setItem("image", e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Submit complaint
+  function submitComplaint() {
+    const complaint = document.getElementById("complaintText").value;
+
+    localStorage.setItem("complaint", complaint);
+    localStorage.setItem("status", "Submitted to Staff");
+
+    updateStudentStatus();
+    alert("Complaint submitted successfully!");
+  }
+
+  // Update student status
+  function updateStudentStatus() {
+    const status = localStorage.getItem("status");
+    document.getElementById("studentStatus").innerText = status || "No complaint submitted";
+  }
+
+  // Load staff data
+  function loadStaffData() {
+    document.getElementById("staffComplaint").innerText =
+      localStorage.getItem("complaint") || "No complaint";
+
+    document.getElementById("staffStatus").innerText =
+      localStorage.getItem("status") || "";
+
+    const img = localStorage.getItem("image");
+    if (img) {
+      const staffImg = document.getElementById("staffImage");
+      staffImg.src = img;
+      staffImg.classList.remove("hidden");
+    }
+  }
+
+  // Forward to management
+  function forwardToManagement() {
+    localStorage.setItem("status", "Sent to Management");
+    document.getElementById("staffStatus").innerText = "Sent to Management";
+    alert("Complaint forwarded to Management");
+  }
+
+  // Load management data
+  function loadManagementData() {
+    document.getElementById("managementComplaint").innerText =
+      localStorage.getItem("complaint") || "No complaint";
+
+    const img = localStorage.getItem("image");
+    if (img) {
+      const mgmtImg = document.getElementById("managementImage");
+      mgmtImg.src = img;
+      mgmtImg.classList.remove("hidden");
+    }
+  }
+
+  // Mark issue complete
+  function markComplete() {
+    localStorage.setItem("status", "Completed");
+    alert("Issue marked as completed");
+  }
+</script>
+
+</body>
+</html>
